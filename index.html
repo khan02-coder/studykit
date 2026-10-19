@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyKit: Free GPA Calculator, Focus Timer and Assignment Tracker</title>
+<meta name="description" content="StudyKit is a free page for students: a GPA and CGPA calculator with several grading scales, a Pomodoro focus timer, and an assignment tracker. No sign-up, works offline, and your data stays on your device.">
+<meta name="theme-color" content="#E8EDF8">
+<meta property="og:title" content="StudyKit: Free GPA Calculator, Focus Timer and Assignment Tracker">
+<meta property="og:description" content="Calculate your GPA, stay focused, and track every deadline. Free, open source, no sign-up.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232447D8'/%3E%3Cpath d='M9 9h14v14H9z' fill='%23FFFFFF'/%3E%3Cpath d='M12 14h8M12 18h8' stroke='%232447D8' stroke-width='2'/%3E%3Cpath d='M12 9v14' stroke='%23F29AAE' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700&family=Zilla+Slab:wght@600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"StudyKit","applicationCategory":"EducationalApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"A free GPA and CGPA calculator, focus timer, and assignment tracker for students.","author":{"@type":"Person","name":"Abbas Khan"}}
+</script>
+<script>
+(function () {
+  var t = null;
+  try { t = JSON.parse(localStorage.getItem("studykit.theme")); } catch (e) {}
+  if (!t) t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", t);
+})();
+</script>
+<style>
+:root{
+  --desk:#E8EDF8;--sheet:#FBFCFF;--rule:#D3DDF5;--margin:#F29AAE;--ink:#16224A;--muted:#58638A;--pen:#2447D8;--pen-ink:#fff;
+  --hi:#FFE15A;--sticky:#FFE97A;--sticky-ink:#2B2300;--ok:#0F7A43;--bad:#C42540;--warn:#8F5A00;--field:#F3F6FD;
+  --head:"Zilla Slab",Georgia,"Times New Roman",serif;--body:"Figtree","Segoe UI",system-ui,sans-serif;
+}
+[data-theme="dark"]{
+  --desk:#0C1124;--sheet:#141B35;--rule:#26305A;--margin:#C46A82;--ink:#E8ECFA;--muted:#9BA7CC;--pen:#8CA3FF;--pen-ink:#0C1124;
+  --ok:#52D294;--bad:#FF8196;--warn:#F2B14B;--field:#0F152C;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--desk);color:var(--ink);font:400 17px/1.55 var(--body);-webkit-font-smoothing:antialiased}
+h1,h2,h3,p{margin:0}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1180px,calc(100% - 40px));margin:0 auto}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:20px;padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;font:700 26px var(--head);text-decoration:none;letter-spacing:-.01em}
+.brand svg{width:30px;height:30px;flex:none}
+.bar nav{display:flex;gap:6px;margin-left:auto}
+.bar nav a{padding:8px 14px;border-radius:999px;text-decoration:none;font-weight:500;font-size:15px;color:var(--muted)}
+.bar nav a:hover{background:var(--sheet);color:var(--ink)}
+.iconbtn{background:var(--sheet);border:1.5px solid var(--rule);border-radius:999px;padding:8px 14px;font-weight:500;font-size:14px}
+.iconbtn:hover{border-color:var(--pen)}
+
+/* hero */
+.hero{padding:34px 0 40px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:40px;align-items:end}
+h1{font:700 clamp(40px,6.2vw,84px)/.98 var(--head);letter-spacing:-.02em;max-width:12em}
+.hero p.sub{margin-top:20px;font-size:clamp(17px,1.7vw,20px);color:var(--muted);max-width:30em}
+.hero .acts{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:12px;border:1.5px solid var(--ink);background:transparent;font-weight:700;font-size:15px;text-decoration:none;transition:background .15s,color .15s,border-color .15s}
+.btn:hover{background:var(--ink);color:var(--desk)}
+.btn.pen{background:var(--pen);border-color:var(--pen);color:var(--pen-ink)}
+.btn.pen:hover{background:var(--ink);border-color:var(--ink);color:var(--desk)}
+.btn.small{padding:8px 14px;font-size:14px;border-radius:10px}
+.btn.quiet{border-color:var(--rule);color:var(--muted);font-weight:500}
+.btn.quiet:hover{border-color:var(--bad);background:transparent;color:var(--bad)}
+.promise{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.promise li{display:flex;gap:12px;align-items:flex-start;font-weight:500}
+.promise svg{width:22px;height:22px;flex:none;margin-top:2px;color:var(--ok)}
+.promise span{color:var(--muted);font-weight:400}
+
+/* layout */
+.grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:28px;align-items:start;padding-bottom:56px}
+.col{display:grid;gap:28px}
+.mark{display:inline;background:linear-gradient(transparent 58%,var(--hi) 58%,var(--hi) 92%,transparent 92%);padding:0 .12em;margin:0 -.12em;color:inherit}
+[data-theme="dark"] .mark{background:linear-gradient(transparent 58%,rgba(255,225,90,.35) 58%,rgba(255,225,90,.35) 92%,transparent 92%)}
+h2{font:700 30px/1.1 var(--head);letter-spacing:-.01em}
+.lead{color:var(--muted);font-size:15px;margin-top:8px}
+
+/* gpa: ruled notebook page */
+.page{position:relative;background:var(--sheet);border:1.5px solid var(--rule);border-radius:6px;padding:30px 30px 28px 78px}
+.page::before{content:"";position:absolute;left:54px;top:0;bottom:0;width:2px;background:var(--margin);opacity:.8}
+.page::after{content:"";position:absolute;left:14px;top:34px;bottom:34px;width:18px;background:radial-gradient(circle at 9px 9px,var(--desk) 0 7px,transparent 8px) 0 0/18px 120px repeat-y;opacity:.95}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:20px}
+.fld{display:grid;gap:6px;min-width:0}
+.fld label,.lab{font-size:13px;font-weight:700;color:var(--muted)}
+input,select{background:var(--field);border:1.5px solid var(--rule);border-radius:9px;padding:9px 11px;min-width:0;width:100%}
+input:hover,select:hover{border-color:var(--muted)}
+input[aria-invalid="true"]{border-color:var(--bad)}
+.sem{margin-top:26px}
+.semhead{display:flex;align-items:center;gap:12px}
+.semhead input.semname{font:700 20px var(--head);background:transparent;border:0;border-bottom:2px dashed var(--rule);border-radius:0;padding:4px 2px;max-width:260px}
+.semhead input.semname:focus{border-bottom-color:var(--pen)}
+.sgpa{margin-left:auto;font-weight:700;font-size:15px;white-space:nowrap;color:var(--muted)}
+.sgpa b{font:700 22px var(--head);color:var(--ink)}
+.crow{display:grid;grid-template-columns:minmax(0,2fr) 86px minmax(0,1.1fr) 38px;gap:8px;align-items:center;padding:8px 0;border-bottom:1.5px solid var(--rule)}
+.crow input,.crow select{background:transparent;border-color:transparent;padding:8px 6px}
+.crow input:hover,.crow select:hover{border-color:var(--rule)}
+.crow input:focus,.crow select:focus{background:var(--field);border-color:var(--pen)}
+.x{width:36px;height:36px;display:grid;place-items:center;background:none;border:0;border-radius:8px;color:var(--muted);font-size:20px;line-height:1}
+.x:hover{background:var(--field);color:var(--bad)}
+.heads{display:grid;grid-template-columns:minmax(0,2fr) 86px minmax(0,1.1fr) 38px;gap:8px;margin-top:12px;font-size:12px;font-weight:700;color:var(--muted);padding:0 6px}
+.addrow{margin-top:12px}
+.total{margin-top:30px;display:flex;align-items:flex-end;gap:32px;flex-wrap:wrap;padding:20px 0 4px;border-top:3px double var(--ink)}
+.total .big{font:700 clamp(54px,7vw,84px)/.9 var(--head);letter-spacing:-.02em}
+.total .lab{display:block;margin-bottom:6px}
+.total .cr{font:700 28px var(--head)}
+.planner{margin-top:24px;border:1.5px dashed var(--rule);border-radius:10px;padding:14px 16px}
+.planner summary{cursor:pointer;font-weight:700}
+.planner .row{margin-top:14px}
+.plan-out{margin-top:14px;font-weight:500;min-height:1.5em}
+.tools{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap}
+
+/* focus: sticky note */
+.sticky{position:relative;background:var(--sticky);color:var(--sticky-ink);padding:26px 26px 24px;border-radius:3px 3px 3px 26px;transform:rotate(-.6deg);box-shadow:0 2px 0 rgba(43,35,0,.12),0 18px 28px -18px rgba(0,0,0,.45)}
+.sticky h2{color:var(--sticky-ink)}
+.sticky .mark{background:linear-gradient(transparent 58%,rgba(255,255,255,.7) 58%,rgba(255,255,255,.7) 92%,transparent 92%)}
+.sticky .lead{color:rgba(43,35,0,.72)}
+.modes{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap}
+.modes button{border:1.5px solid var(--sticky-ink);background:transparent;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;color:var(--sticky-ink)}
+.modes button[aria-pressed="true"]{background:var(--sticky-ink);color:var(--sticky)}
+.dial{position:relative;width:min(240px,100%);margin:18px auto 6px}
+.dial svg{display:block;width:100%;height:auto;transform:rotate(-90deg)}
+.dial .track{fill:none;stroke:rgba(43,35,0,.16);stroke-width:10}
+.dial .prog{fill:none;stroke:var(--sticky-ink);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.dial output{position:absolute;inset:0;display:grid;place-items:center;font:700 56px var(--head);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.dial small{position:absolute;left:0;right:0;bottom:22%;text-align:center;font-weight:700;font-size:13px;letter-spacing:.02em}
+.ctrl{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.sticky .btn{border-color:var(--sticky-ink);color:var(--sticky-ink)}
+.sticky .btn:hover{background:var(--sticky-ink);color:var(--sticky)}
+.sticky .btn.pen{background:var(--sticky-ink);color:var(--sticky)}
+.sticky .btn.pen:hover{background:transparent;color:var(--sticky-ink)}
+.tset{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tset .lab{color:rgba(43,35,0,.75)}
+.sticky input{background:rgba(255,255,255,.55);border-color:rgba(43,35,0,.3);color:var(--sticky-ink)}
+.sticky input:focus-visible,.sticky .btn:focus-visible,.sticky .modes button:focus-visible{outline-color:var(--sticky-ink)}
+.chk{display:flex;gap:8px;align-items:center;margin-top:14px;font-size:14px;font-weight:500}
+.chk input{width:18px;height:18px;accent-color:var(--sticky-ink)}
+.today{margin-top:14px;padding-top:12px;border-top:1.5px dashed rgba(43,35,0,.35);display:flex;justify-content:space-between;font-weight:700;font-size:14px;gap:12px;flex-wrap:wrap}
+
+/* tasks: index card */
+.card{background:var(--sheet);border:1.5px solid var(--rule);border-top:6px solid var(--margin);border-radius:8px;padding:24px 26px 26px}
+.tform{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.tform .wide{grid-column:1/-1}
+.tform .btn{grid-column:1/-1}
+.tsum{margin-top:18px;font-weight:700;font-size:14px;color:var(--muted)}
+.tlist{list-style:none;margin:8px 0 0;padding:0}
+.task{display:grid;grid-template-columns:28px minmax(0,1fr) 36px;gap:10px;align-items:start;padding:12px 0;border-bottom:1.5px solid var(--rule)}
+.task input[type="checkbox"]{width:22px;height:22px;margin-top:2px;accent-color:var(--pen)}
+.task .tt{font-weight:700;overflow-wrap:anywhere}
+.task.done .tt{text-decoration:line-through;color:var(--muted)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:13px;color:var(--muted)}
+.chip{padding:1px 9px;border-radius:999px;border:1.5px solid var(--rule);font-weight:700}
+.chip.bad{color:var(--bad);border-color:var(--bad)}
+.chip.warn{color:var(--warn);border-color:var(--warn)}
+.chip.high{background:var(--bad);border-color:var(--bad);color:#fff}
+.empty{padding:18px 0;color:var(--muted)}
+
+footer{border-top:1.5px solid var(--rule);padding:30px 0 60px;display:flex;gap:24px;flex-wrap:wrap;align-items:center;justify-content:space-between;color:var(--muted);font-size:15px}
+footer a{color:var(--ink);font-weight:700}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--desk);padding:10px 18px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:20}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:980px){
+  .hero{grid-template-columns:1fr;gap:26px;align-items:start}
+  .grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .bar nav a{display:none}
+  .bar nav{margin-left:auto}
+  .page{padding:24px 18px 22px 52px}
+  .page::before{left:34px}
+  .page::after{left:6px;width:16px}
+  .crow{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) 36px}
+  .crow .cname{grid-column:1/-1}
+  .heads{display:none}
+  .semhead{flex-wrap:wrap}
+  .sgpa{margin-left:0;width:100%}
+  .tset{grid-template-columns:1fr 1fr 1fr}
+  .tform{grid-template-columns:1fr}
+  .sticky{transform:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .dial .prog,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="brand" href="#top" aria-label="StudyKit home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#2447D8"/><path d="M9 9h14v14H9z" fill="#fff"/><path d="M12 14h8M12 18h8" stroke="#2447D8" stroke-width="2"/><path d="M12 9v14" stroke="#F29AAE" stroke-width="1.6"/></svg>
+      StudyKit
+    </a>
+    <nav aria-label="Tools">
+      <a href="#gpa">GPA</a><a href="#focus">Focus</a><a href="#tasks">Tasks</a>
+    </nav>
+    <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark theme">Dark mode</button>
+  </header>
+
+  <section class="hero" id="top">
+    <div>
+      <h1>GPA, focus, and deadlines in one free page.</h1>
+      <p class="sub">Work out your GPA and CGPA, run a focus timer, and keep track of every assignment. No account, no ads, and nothing leaves your device.</p>
+      <div class="acts">
+        <a class="btn pen" href="#gpa">Calculate my GPA</a>
+        <a class="btn" id="starLink" href="https://github.com/khan02-coder/studykit" target="_blank" rel="noopener">Star on GitHub</a>
+        <button class="btn quiet" id="shareBtn" type="button">Share with a friend</button>
+      </div>
+    </div>
+    <ul class="promise" aria-label="What you get">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div>Four grading scales<br><span>US 4.0, percentage, or your own grade points</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div>Works offline<br><span>Open it once and it keeps working</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><div>Private by design<br><span>Saved only in your browser</span></div></li>
+    </ul>
+  </section>
+
+  <main class="grid">
+    <section class="page" id="gpa" aria-labelledby="gpa-h">
+      <h2 id="gpa-h"><span class="mark">GPA and CGPA calculator</span></h2>
+      <p class="lead">Add your courses semester by semester. Your cumulative GPA updates as you type.</p>
+      <div class="row">
+        <div class="fld" style="flex:1 1 260px">
+          <label for="scale">Grading scale</label>
+          <select id="scale">
+            <option value="us_pm">US 4.0 with plus and minus (A, A-, B+)</option>
+            <option value="us_s">US 4.0, letters only (A, B, C, D, F)</option>
+            <option value="pct">Percentage (0 to 100)</option>
+            <option value="direct">My own grade points</option>
+          </select>
+        </div>
+        <div class="fld" id="maxWrap" style="width:130px" hidden>
+          <label for="maxIn">Scale maximum</label>
+          <input id="maxIn" type="number" min="1" step="0.1" value="4" inputmode="decimal">
+        </div>
+      </div>
+      <div id="semesters"></div>
+      <div class="tools"><button class="btn small" id="addSem" type="button">Add semester</button></div>
+      <div class="total" aria-live="polite">
+        <div><span class="lab">Cumulative GPA</span><span class="big" id="cgpa">–</span></div>
+        <div><span class="lab">Total credits</span><span class="cr" id="credits">0</span></div>
+      </div>
+      <details class="planner">
+        <summary>What GPA do I need next?</summary>
+        <div class="row">
+          <div class="fld" style="width:150px"><label for="tgt">Target CGPA</label><input id="tgt" type="number" step="0.01" min="0" inputmode="decimal" placeholder="3.50"></div>
+          <div class="fld" style="width:150px"><label for="nxt">Next semester credits</label><input id="nxt" type="number" step="0.5" min="0" inputmode="decimal" placeholder="15"></div>
+        </div>
+        <p class="plan-out" id="planOut" aria-live="polite"></p>
+      </details>
+      <div class="tools"><button class="btn small quiet" id="clearGpa" type="button">Clear everything</button></div>
+    </section>
+
+    <div class="col">
+      <section class="sticky" id="focus" aria-labelledby="focus-h">
+        <h2 id="focus-h"><span class="mark">Focus timer</span></h2>
+        <p class="lead">Work in short, focused rounds with breaks in between.</p>
+        <div class="modes" id="modes" role="group" aria-label="Timer mode">
+          <button type="button" data-mode="focus" aria-pressed="true">Focus</button>
+          <button type="button" data-mode="short" aria-pressed="false">Short break</button>
+          <button type="button" data-mode="long" aria-pressed="false">Long break</button>
+        </div>
+        <div class="dial">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="track" cx="60" cy="60" r="54"/><circle class="prog" id="ring" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="0"/></svg>
+          <output id="time" aria-label="Time remaining">25:00</output>
+          <small id="modeLbl">Focus</small>
+        </div>
+        <div class="ctrl">
+          <button class="btn pen" id="startBtn" type="button">Start</button>
+          <button class="btn" id="resetBtn" type="button">Reset</button>
+          <button class="btn" id="skipBtn" type="button">Skip</button>
+        </div>
+        <div class="tset">
+          <div class="fld"><label class="lab" for="mFocus">Focus (min)</label><input id="mFocus" type="number" min="1" max="180" value="25" inputmode="numeric"></div>
+          <div class="fld"><label class="lab" for="mShort">Short (min)</label><input id="mShort" type="number" min="1" max="60" value="5" inputmode="numeric"></div>
+          <div class="fld"><label class="lab" for="mLong">Long (min)</label><input id="mLong" type="number" min="1" max="90" value="15" inputmode="numeric"></div>
+        </div>
+        <label class="chk"><input id="snd" type="checkbox" checked> Play a sound when time is up</label>
+        <div class="today"><span>Rounds today: <b id="rounds">0</b></span><span>Focused: <b id="mins">0</b> min</span></div>
+        <p class="sr" id="live" aria-live="polite"></p>
+      </section>
+
+      <section class="card" id="tasks" aria-labelledby="tasks-h">
+        <h2 id="tasks-h"><span class="mark">Assignment tracker</span></h2>
+        <p class="lead">Add what is due, and the closest deadline stays on top.</p>
+        <form class="tform" id="tform" autocomplete="off">
+          <div class="fld wide"><label for="tTitle">What is due?</label><input id="tTitle" type="text" maxlength="90" placeholder="Physics lab report" required></div>
+          <div class="fld"><label for="tCourse">Course (optional)</label><input id="tCourse" type="text" maxlength="40" placeholder="PHY 101"></div>
+          <div class="fld"><label for="tDue">Due date</label><input id="tDue" type="date"></div>
+          <div class="fld wide"><label for="tPri">Priority</label><select id="tPri"><option value="1">Normal</option><option value="2">High</option><option value="0">Low</option></select></div>
+          <button class="btn pen" type="submit">Add assignment</button>
+        </form>
+        <p class="tsum" id="tsum" aria-live="polite"></p>
+        <ul class="tlist" id="tlist"></ul>
+        <div class="tools"><button class="btn small quiet" id="clearDone" type="button">Clear completed</button></div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <span>StudyKit is free and open source (MIT). Made by <a href="https://khan02-coder.github.io/my-first-project/" target="_blank" rel="noopener">Abbas Khan</a>.</span>
+    <span><a href="https://github.com/khan02-coder/studykit" target="_blank" rel="noopener">View the code on GitHub</a></span>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+"use strict";
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
+function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function h(tag, props, kids) {
+  var e = document.createElement(tag), k;
+  for (k in (props || {})) {
+    if (k === "text") e.textContent = props[k];
+    else if (k === "class") e.className = props[k];
+    else e.setAttribute(k, props[k]);
+  }
+  (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
+  return e;
+}
+var reduce = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+var toastEl = $("#toast"), toastTimer;
+function toast(msg) { toastEl.textContent = msg; toastEl.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2400); }
+
+/* ---------- theme ---------- */
+(function () {
+  var btn = $("#themeBtn"), root = document.documentElement;
+  function paint() { var d = root.getAttribute("data-theme") === "dark"; btn.textContent = d ? "Light mode" : "Dark mode"; btn.setAttribute("aria-label", d ? "Switch to light theme" : "Switch to dark theme"); }
+  btn.addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next); save("studykit.theme", next); paint();
+  });
+  paint();
+})();
+
+/* ---------- share ---------- */
+$("#shareBtn").addEventListener("click", function () {
+  var url = location.href.split("#")[0], data = { title: "StudyKit", text: "A free GPA calculator, focus timer, and assignment tracker for students.", url: url };
+  if (navigator.share) { navigator.share(data).catch(function () {}); return; }
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(function () { toast("Link copied"); }, function () { toast("Copy the link from the address bar"); });
+  else toast("Copy the link from the address bar");
+});
+
+/* ---------- GPA ---------- */
+var US_PM = [["A", 4], ["A-", 3.7], ["B+", 3.3], ["B", 3], ["B-", 2.7], ["C+", 2.3], ["C", 2], ["C-", 1.7], ["D+", 1.3], ["D", 1], ["F", 0]];
+var US_S = [["A", 4], ["B", 3], ["C", 2], ["D", 1], ["F", 0]];
+var SCALES = { us_pm: { type: "letter", table: US_PM }, us_s: { type: "letter", table: US_S }, pct: { type: "num" }, direct: { type: "num" } };
+function blank() { return { name: "", credits: "", grade: "" }; }
+function newSem(n) { return { name: n, courses: [blank(), blank(), blank()] }; }
+var G = load("studykit.gpa", null);
+if (!G || !G.sems || !G.sems.length || !SCALES[G.scale]) G = { scale: "us_pm", max: 4, sems: [newSem("Semester 1")] };
+
+function maxVal() { return G.scale === "pct" ? 100 : G.scale === "direct" ? (parseFloat(G.max) > 0 ? parseFloat(G.max) : 4) : 4; }
+function gradeValue(c) {
+  var S = SCALES[G.scale], i;
+  if (S.type === "letter") { for (i = 0; i < S.table.length; i++) if (S.table[i][0] === c.grade) return S.table[i][1]; return NaN; }
+  var v = parseFloat(c.grade);
+  if (isNaN(v) || v < 0 || v > maxVal()) return NaN;
+  return v;
+}
+function creditsOf(c) { var v = parseFloat(c.credits); return v > 0 ? v : 0; }
+function stats(courses) {
+  var pts = 0, cr = 0;
+  courses.forEach(function (c) { var cv = creditsOf(c), gv = gradeValue(c); if (cv > 0 && !isNaN(gv)) { pts += cv * gv; cr += cv; } });
+  return { pts: pts, cr: cr, avg: cr ? pts / cr : NaN };
+}
+function fmt(v) { return isNaN(v) ? "–" : (G.scale === "pct" ? v.toFixed(1) + "%" : v.toFixed(2)); }
+function fmtCr(v) { return (Math.round(v * 100) / 100).toString(); }
+function persistGpa() { save("studykit.gpa", G); }
+
+function normalize() {
+  var S = SCALES[G.scale];
+  G.sems.forEach(function (s) {
+    s.courses.forEach(function (c) {
+      if (S.type === "letter") { if (!S.table.some(function (r) { return r[0] === c.grade; })) c.grade = ""; }
+      else if (c.grade !== "" && isNaN(parseFloat(c.grade))) c.grade = "";
+    });
+  });
+}
+
+function gradeControl(c, label) {
+  var S = SCALES[G.scale], ctl;
+  if (S.type === "letter") {
+    ctl = h("select", { "aria-label": label + " grade" }, [h("option", { value: "", text: "Grade" })].concat(S.table.map(function (r) { var o = h("option", { value: r[0], text: r[0] + " (" + r[1].toFixed(1) + ")" }); return o; })));
+    ctl.value = c.grade;
+    ctl.addEventListener("change", function () { c.grade = ctl.value; recalc(); });
+  } else {
+    ctl = h("input", { type: "number", step: "any", min: "0", inputmode: "decimal", placeholder: G.scale === "pct" ? "Marks %" : "Points", "aria-label": label + " grade" });
+    ctl.value = c.grade;
+    ctl.addEventListener("input", function () { c.grade = ctl.value; ctl.setAttribute("aria-invalid", (c.grade !== "" && isNaN(gradeValue(c))) ? "true" : "false"); recalc(); });
+    if (c.grade !== "" && isNaN(gradeValue(c))) ctl.setAttribute("aria-invalid", "true");
+  }
+  return ctl;
+}
+
+function render() {
+  var box = $("#semesters"); box.innerHTML = "";
+  $("#scale").value = G.scale; $("#maxWrap").hidden = G.scale !== "direct"; $("#maxIn").value = G.max;
+  G.sems.forEach(function (sem, si) {
+    var nameIn = h("input", { class: "semname", type: "text", value: sem.name, "aria-label": "Semester name", maxlength: "40" });
+    nameIn.addEventListener("input", function () { sem.name = nameIn.value; persistGpa(); });
+    var sg = h("span", { class: "sgpa" }, [document.createTextNode("Semester GPA "), h("b", { "data-sgpa": si, text: "–" })]);
+    var head = h("div", { class: "semhead" }, [nameIn, sg]);
+    if (G.sems.length > 1) {
+      var rm = h("button", { class: "x", type: "button", "aria-label": "Remove " + (sem.name || "semester"), text: "×" });
+      rm.addEventListener("click", function () { G.sems.splice(si, 1); render(); recalc(); });
+      head.appendChild(rm);
+    }
+    var heads = h("div", { class: "heads", "aria-hidden": "true" }, [h("span", { text: "Course" }), h("span", { text: "Credits" }), h("span", { text: "Grade" }), h("span")]);
+    var rows = h("div");
+    sem.courses.forEach(function (c, ci) {
+      var label = "Course " + (ci + 1);
+      var nm = h("input", { class: "cname", type: "text", value: c.name, placeholder: "Course name", "aria-label": label + " name", maxlength: "60" });
+      nm.addEventListener("input", function () { c.name = nm.value; persistGpa(); });
+      var cr = h("input", { type: "number", min: "0", step: "0.5", inputmode: "decimal", placeholder: "Credits", "aria-label": label + " credits" });
+      cr.value = c.credits;
+      cr.addEventListener("input", function () { c.credits = cr.value; recalc(); });
+      var del = h("button", { class: "x", type: "button", "aria-label": "Remove " + label, text: "×" });
+      del.addEventListener("click", function () { sem.courses.splice(ci, 1); if (!sem.courses.length) sem.courses.push(blank()); render(); recalc(); });
+      rows.appendChild(h("div", { class: "crow" }, [nm, cr, gradeControl(c, label), del]));
+    });
+    var add = h("button", { class: "btn small quiet addrow", type: "button", text: "Add course" });
+    add.addEventListener("click", function () { sem.courses.push(blank()); render(); recalc(); });
+    box.appendChild(h("div", { class: "sem" }, [head, heads, rows, add]));
+  });
+}
+
+function recalc() {
+  var P = 0, C = 0;
+  G.sems.forEach(function (s, i) {
+    var st = stats(s.courses); P += st.pts; C += st.cr;
+    var b = $('[data-sgpa="' + i + '"]'); if (b) b.textContent = fmt(st.avg);
+  });
+  $("#cgpa").textContent = C ? fmt(P / C) : "–";
+  $("#credits").textContent = fmtCr(C);
+  persistGpa(); planner(P, C);
+}
+function planner(P, C) {
+  var t = parseFloat($("#tgt").value), n = parseFloat($("#nxt").value), out = $("#planOut");
+  if (isNaN(t) || isNaN(n) || n <= 0) { out.textContent = ""; return; }
+  var need = (t * (C + n) - P) / n, mx = maxVal(), u = G.scale === "pct" ? "%" : "";
+  if (need <= 0) out.textContent = "You are already above that target. Any passing result keeps you there.";
+  else if (need > mx) out.textContent = "You would need " + need.toFixed(2) + u + " across " + fmtCr(n) + " credits, which is above the maximum of " + mx + u + ". Plan the target over more than one semester.";
+  else out.textContent = "You need an average of about " + need.toFixed(2) + u + " across your next " + fmtCr(n) + " credits.";
+}
+$("#scale").addEventListener("change", function () { G.scale = $("#scale").value; normalize(); render(); recalc(); });
+$("#maxIn").addEventListener("input", function () { G.max = $("#maxIn").value; recalc(); });
+$("#addSem").addEventListener("click", function () { G.sems.push(newSem("Semester " + (G.sems.length + 1))); render(); recalc(); });
+$("#clearGpa").addEventListener("click", function () { if (window.confirm("Clear all semesters and courses?")) { G = { scale: G.scale, max: G.max, sems: [newSem("Semester 1")] }; render(); recalc(); } });
+$("#tgt").addEventListener("input", recalc); $("#nxt").addEventListener("input", recalc);
+render(); recalc();
+
+/* ---------- focus timer ---------- */
+(function () {
+  var CIRC = 339.292, cfg = load("studykit.timer", { focus: 25, short: 5, long: 15, sound: true });
+  var day = new Date().toDateString(), stats = load("studykit.today", { day: day, rounds: 0, mins: 0 });
+  if (stats.day !== day) stats = { day: day, rounds: 0, mins: 0 };
+  var mode = "focus", cycle = 0, running = false, endAt = 0, remain = cfg.focus * 60000, total = remain, iv = null;
+  var NAMES = { focus: "Focus", short: "Short break", long: "Long break" };
+  var timeEl = $("#time"), ring = $("#ring"), startBtn = $("#startBtn"), baseTitle = document.title;
+  $("#mFocus").value = cfg.focus; $("#mShort").value = cfg.short; $("#mLong").value = cfg.long; $("#snd").checked = !!cfg.sound;
+  function mmss(ms) { var s = Math.max(0, Math.ceil(ms / 1000)), m = Math.floor(s / 60); return (m < 10 ? "0" : "") + m + ":" + (s % 60 < 10 ? "0" : "") + (s % 60); }
+  function paint() {
+    timeEl.textContent = mmss(remain);
+    ring.style.strokeDashoffset = (CIRC * (1 - (total ? remain / total : 0))).toFixed(2);
+    $("#modeLbl").textContent = NAMES[mode];
+    startBtn.textContent = running ? "Pause" : (remain < total ? "Resume" : "Start");
+    $$("#modes button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-mode") === mode ? "true" : "false"); });
+    $("#rounds").textContent = stats.rounds; $("#mins").textContent = stats.mins;
+    document.title = running ? mmss(remain) + " " + NAMES[mode] + " | StudyKit" : baseTitle;
+  }
+  function setMode(m) { mode = m; stop(); total = remain = cfg[m] * 60000; paint(); }
+  function stop() { running = false; clearInterval(iv); iv = null; }
+  function tick() { remain = endAt - Date.now(); if (remain <= 0) { remain = 0; finish(); } else paint(); }
+  function start() { running = true; endAt = Date.now() + remain; iv = setInterval(tick, 250); paint(); }
+  function beep() {
+    if (!cfg.sound) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext, c = new AC();
+      [0, 0.25, 0.5].forEach(function (t, i) {
+        var o = c.createOscillator(), g = c.createGain(); o.type = "sine"; o.frequency.value = i === 2 ? 880 : 660;
+        g.gain.setValueAtTime(0.0001, c.currentTime + t); g.gain.exponentialRampToValueAtTime(0.25, c.currentTime + t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t + 0.2);
+        o.connect(g); g.connect(c.destination); o.start(c.currentTime + t); o.stop(c.currentTime + t + 0.22);
+      });
+      setTimeout(function () { c.close(); }, 1200);
+    } catch (e) {}
+  }
+  function finish() {
+    var was = mode; stop(); beep();
+    if (was === "focus") { stats.rounds++; stats.mins += cfg.focus; save("studykit.today", stats); cycle++; mode = cycle % 4 === 0 ? "long" : "short"; }
+    else mode = "focus";
+    total = remain = cfg[mode] * 60000; paint();
+    var msg = was === "focus" ? "Focus round complete. Time for a " + NAMES[mode].toLowerCase() + "." : "Break over. Ready for the next focus round?";
+    $("#live").textContent = msg; toast(msg);
+  }
+  startBtn.addEventListener("click", function () { if (running) { remain = Math.max(0, endAt - Date.now()); stop(); paint(); } else start(); });
+  $("#resetBtn").addEventListener("click", function () { stop(); total = remain = cfg[mode] * 60000; paint(); });
+  $("#skipBtn").addEventListener("click", function () { finishSkip(); });
+  function finishSkip() { var was = mode; stop(); if (was === "focus") { cycle++; mode = cycle % 4 === 0 ? "long" : "short"; } else mode = "focus"; total = remain = cfg[mode] * 60000; paint(); }
+  $$("#modes button").forEach(function (b) { b.addEventListener("click", function () { setMode(b.getAttribute("data-mode")); }); });
+  function readCfg() {
+    [["#mFocus", "focus", 180], ["#mShort", "short", 60], ["#mLong", "long", 90]].forEach(function (r) {
+      var v = Math.round(parseFloat($(r[0]).value)); if (v >= 1 && v <= r[2]) cfg[r[1]] = v;
+    });
+    cfg.sound = $("#snd").checked; save("studykit.timer", cfg);
+    if (!running && remain === total) { total = remain = cfg[mode] * 60000; paint(); }
+  }
+  ["#mFocus", "#mShort", "#mLong"].forEach(function (s) { $(s).addEventListener("input", readCfg); });
+  $("#snd").addEventListener("change", readCfg);
+  document.addEventListener("visibilitychange", function () { if (running) tick(); });
+  paint();
+})();
+
+/* ---------- tasks ---------- */
+(function () {
+  var T = load("studykit.tasks", []);
+  if (!Array.isArray(T)) T = [];
+  function persist() { save("studykit.tasks", T); }
+  function diff(due) { var p = due.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]), n = new Date(); n = new Date(n.getFullYear(), n.getMonth(), n.getDate()); return Math.round((d - n) / 86400000); }
+  function label(due) {
+    var n = diff(due), p = due.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]);
+    if (n < 0) return { t: "Overdue by " + (-n) + (n === -1 ? " day" : " days"), c: "bad" };
+    if (n === 0) return { t: "Due today", c: "warn" };
+    if (n === 1) return { t: "Due tomorrow", c: "warn" };
+    if (n <= 7) return { t: "Due in " + n + " days", c: "" };
+    return { t: "Due " + d.toLocaleDateString(undefined, { month: "short", day: "numeric" }), c: "" };
+  }
+  function sorted() {
+    return T.slice().sort(function (a, b) {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      var da = a.due ? diff(a.due) : 1e9, db = b.due ? diff(b.due) : 1e9;
+      if (da !== db) return da - db;
+      return (+b.pri) - (+a.pri);
+    });
+  }
+  function draw() {
+    var list = $("#tlist"); list.innerHTML = "";
+    var open = T.filter(function (t) { return !t.done; }), late = open.filter(function (t) { return t.due && diff(t.due) < 0; });
+    $("#tsum").textContent = T.length ? open.length + " open" + (late.length ? ", " + late.length + " overdue" : "") : "";
+    if (!T.length) { list.appendChild(h("li", { class: "empty", text: "Nothing due yet. Add your first assignment above." })); return; }
+    sorted().forEach(function (t) {
+      var cb = h("input", { type: "checkbox", "aria-label": "Mark " + t.title + " as done" }); cb.checked = !!t.done;
+      cb.addEventListener("change", function () { t.done = cb.checked; persist(); draw(); });
+      var meta = h("div", { class: "meta" });
+      if (t.course) meta.appendChild(h("span", { class: "chip", text: t.course }));
+      if (t.due && !t.done) { var l = label(t.due); meta.appendChild(h("span", { class: "chip " + l.c, text: l.t })); }
+      else if (t.due) meta.appendChild(h("span", { class: "chip", text: "Done" }));
+      if (+t.pri === 2 && !t.done) meta.appendChild(h("span", { class: "chip high", text: "High priority" }));
+      var del = h("button", { class: "x", type: "button", "aria-label": "Delete " + t.title, text: "×" });
+      del.addEventListener("click", function () { T = T.filter(function (x) { return x.id !== t.id; }); persist(); draw(); });
+      list.appendChild(h("li", { class: "task" + (t.done ? " done" : "") }, [cb, h("div", {}, [h("div", { class: "tt", text: t.title }), meta]), del]));
+    });
+  }
+  $("#tform").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var title = $("#tTitle").value.trim(); if (!title) { $("#tTitle").focus(); return; }
+    T.push({ id: Date.now() + "-" + Math.floor(Math.random() * 1e6), title: title, course: $("#tCourse").value.trim(), due: $("#tDue").value, pri: $("#tPri").value, done: false });
+    persist(); draw(); $("#tTitle").value = ""; $("#tCourse").value = ""; $("#tDue").value = ""; $("#tPri").value = "1"; $("#tTitle").focus();
+  });
+  $("#clearDone").addEventListener("click", function () { var n = T.filter(function (t) { return t.done; }).length; if (!n) { toast("No completed assignments to clear"); return; } T = T.filter(function (t) { return !t.done; }); persist(); draw(); });
+  draw();
+})();
+
+/* offline: a small service worker keeps the page working after the first visit */
+if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+})();
+</script>
+</body>
+</html>
